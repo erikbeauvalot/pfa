@@ -8,6 +8,7 @@ import { Dashboard } from './components/Dashboard';
 import Login from './components/Login';
 import Home from './components/Home';
 import Navbar from './components/Navbar';
+import UserManagement from './components/UserManagement';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/user-management" element={<UserManagement />} />
           {/* Ajouter d'autres routes selon les besoins */}
         </Routes>
       </BrowserRouter>

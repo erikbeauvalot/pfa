@@ -23,6 +23,11 @@ const Navbar = () => {
                 <li className="nav-item">
                   <Link className="nav-link" to="/dashboard">Tableau de bord</Link>
                 </li>
+                {user.role === 'admin' && (
+                  <li className="nav-item">
+                    <Link className="nav-link" to="/user-management">Gestion des utilisateurs</Link>
+                  </li>
+                )}
                 <li className="nav-item">
                   <button className="btn btn-link nav-link" onClick={logout}>Déconnexion</button>
                 </li>
