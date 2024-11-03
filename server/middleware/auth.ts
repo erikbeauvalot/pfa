@@ -8,10 +8,10 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
       return res.status(401).json({ message: "Token manquant" });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string; email: string; role: "ADMIN" | "USER" };
     req.user = decoded;
     next();
-  } catch (error) {
+  } catch {
     res.status(401).json({ message: "Token invalide" });
   }
 };

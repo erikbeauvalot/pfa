@@ -1,0 +1,10 @@
+import { Router } from 'express';
+import accountController from '../controllers/account.controller.js';
+import { validateTransaction } from '../middleware/validation.js';
+
+const router = Router();
+
+router.get('/', accountController.getAccounts);
+router.post('/:accountId/transactions', validateTransaction, accountController.createTransaction);
+
+export default router;

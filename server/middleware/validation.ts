@@ -1,15 +1,19 @@
 import { Request, Response, NextFunction } from 'express';
 
-export const validateAuth = (req: Request, res: Response, next: NextFunction) => {
-  const { email, password } = req.body;
+const validateAuth = (req: Request, res: Response, next: NextFunction) => {
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const { email, password } = body;
+  
   if (!email || !password) {
     return res.status(400).json({ message: "Email et mot de passe requis" });
   }
   next();
 };
 
-export const validateTransaction = (req: Request, res: Response, next: NextFunction) => {
-  const { amount, description, type } = req.body;
+const validateTransaction = (req: Request, res: Response, next: NextFunction) => {
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const { amount, description, type } = body;
+  
   if (!amount || !description || !type) {
     return res.status(400).json({ message: "Montant, description et type requis" });
   }
@@ -18,3 +22,5 @@ export const validateTransaction = (req: Request, res: Response, next: NextFunct
   }
   next();
 };
+
+export { validateAuth, validateTransaction };
