@@ -11,7 +11,7 @@ model User {
   id        String    @id @default(uuid())
   email     String    @unique
   password  String
-  name      String
+  name      String    @unique
   role      String      @default("USER")
   accounts  Account[]
   createdAt DateTime  @default(now())

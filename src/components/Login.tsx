@@ -11,6 +11,7 @@ export default function Login() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('name:', name, 'password:', password);
     login(name, password);
   };
 

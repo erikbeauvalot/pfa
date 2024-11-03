@@ -2,9 +2,10 @@ import { Request, Response, NextFunction } from 'express';
 
 const validateAuth = (req: Request, res: Response, next: NextFunction) => {
   const body = req.body && typeof req.body === 'object' ? req.body : {};
-  const { email, password } = body;
+  console.log('body', body);
+  const { name, password } = body;
   
-  if (!email || !password) {
+  if (!name || !password) {
     return res.status(400).json({ message: "Email et mot de passe requis" });
   }
   next();

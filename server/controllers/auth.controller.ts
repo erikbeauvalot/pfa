@@ -1,7 +1,7 @@
 // FILE: server/controllers/auth.controller.ts
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
 const prisma = new PrismaClient();
@@ -48,6 +48,7 @@ export const authController = {
 
   async login(req: Request, res: Response) {
     const { name, password } = req.body;
+    console.log('name', name, 'password', password);
 
     if (!name || !password) {
       return res.status(400).json({ message: 'Nom et mot de passe sont requis' });
@@ -87,6 +88,27 @@ export const authController = {
     } catch (error) {
       console.error('Erreur lors de la connexion:', error);
       res.status(500).json({ message: 'Erreur lors de la connexion' });
+    }
+  },
+
+  async me(req: Request, res: Response) {
+    try {
+      const token = req.headers.authorization?.split(' ')[1];
+      if (!token) {
+        return res.status(401).json({ message: 'Token manquant' });
+      }
+
+      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
+      const user = await prisma.user.findUnique({ where: { id: decoded.id } });
+
+      if (!user) {
+        return res.status(404).json({ message: 'Utilisateur non trouvé' });
+      }
+
+      res.status(200).json({ user });
+    } catch (error) {
+      console.error('Erreur lors de la récupération des informations utilisateur:', error);
+      res.status(500).json({ message: 'Erreur lors de la récupération des informations utilisateur' });
     }
   },
 };

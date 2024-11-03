@@ -21,6 +21,43 @@ async function main() {
   });
 
   console.log('Admin user created:', adminUser);
+
+
+  const ErikEmail = 'erik@beauvalot.com';
+  const ErikPassword = 'toto';
+  const ErikhashedPassword = await bcrypt.hash(ErikPassword, 10);
+
+  const ErikUser = await prisma.user.upsert({
+    where: { email: ErikEmail },
+    update: {},
+    create: {
+      email: ErikEmail,
+      password: ErikhashedPassword,
+      name: 'erik',
+      role: 'admin',
+    },
+  });
+
+  console.log('erik user created:', ErikUser);
+
+  const SimpleEmail = 'test@beauvalot.com';
+  const SimplePassword = 'toto';
+  const SimplehashedPassword = await bcrypt.hash(SimplePassword, 10);
+
+  const SimpleUser = await prisma.user.upsert({
+    where: { email: SimpleEmail },
+    update: {},
+    create: {
+      email: SimpleEmail,
+      password: SimplehashedPassword,
+      name: 'test',
+      role: 'utilisateur',
+    },
+  });
+
+  console.log('user created:', SimpleUser);
+
+
 }
 
 main()
