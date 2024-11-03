@@ -1,35 +1,39 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useState, useContext } from 'react';
 
+// Définir le type pour le contexte d'authentification
 interface AuthContextType {
-  token: string | null;
-  login: (token: string) => void;
+  user: { name: string } | null;
+  login: (name: string) => void;
   logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | null>(null);
+// Créer le contexte avec une valeur par défaut
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+// Fournisseur de contexte d'authentification
+export const AuthProvider: React.FC = ({ children }) => {
+  const [user, setUser] = useState<{ name: string } | null>(null);
 
-  const login = (newToken: string) => {
-    setToken(newToken);
-    localStorage.setItem('token', newToken);
+  const login = (name: string) => {
+    setUser({ name });
   };
 
   const logout = () => {
-    setToken(null);
-    localStorage.removeItem('token');
+    setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ token, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
-}
+};
 
+// Hook personnalisé pour utiliser le contexte d'authentification
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth must be used within AuthProvider');
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
   return context;
 };
