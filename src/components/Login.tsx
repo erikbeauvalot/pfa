@@ -1,26 +1,17 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
-  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const response = await axios.post('http://localhost:3000/api/login', {
-        email,
-        password
-      });
-      login(response.data.token);
-      navigate('/dashboard');
-    } catch (error) {
-      console.error('Erreur de connexion:', error);
-    }
+    login(name, password);
+    navigate('/dashboard');
   };
 
   return (
@@ -28,14 +19,14 @@ export default function Login() {
       <h2>Connexion</h2>
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
-          <label htmlFor="email" className="form-label">Email</label>
+          <label htmlFor="name" className="form-label">Nom</label>
           <input
-            type="email"
+            type="text"
             className="form-control"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email"
+            id="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Nom"
             required
           />
         </div>

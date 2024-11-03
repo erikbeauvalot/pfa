@@ -1,21 +1,31 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, ReactNode } from 'react';
 
-// Définir le type pour le contexte d'authentification
+interface User {
+  name: string;
+  role: 'user' | 'admin';
+  password?: string;
+}
+
 interface AuthContextType {
-  user: { name: string } | null;
-  login: (name: string) => void;
+  user: User | null;
+  login: (name: string, password: string) => void;
   logout: () => void;
 }
 
-// Créer le contexte avec une valeur par défaut
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Fournisseur de contexte d'authentification
-export const AuthProvider: React.FC = ({ children }) => {
-  const [user, setUser] = useState<{ name: string } | null>(null);
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  // Initialiser avec un utilisateur administrateur par défaut
+  const defaultAdmin: User = { name: 'admin', role: 'admin', password: 'toto' };
+  const [user, setUser] = useState<User | null>(null);
 
-  const login = (name: string) => {
-    setUser({ name });
+  const login = (name: string, password: string) => {
+    if (name === defaultAdmin.name && password === defaultAdmin.password) {
+      setUser({ name: defaultAdmin.name, role: defaultAdmin.role });
+    } else {
+      // Logique pour d'autres utilisateurs ou gestion des erreurs
+      console.error('Nom d\'utilisateur ou mot de passe incorrect');
+    }
   };
 
   const logout = () => {
@@ -29,7 +39,6 @@ export const AuthProvider: React.FC = ({ children }) => {
   );
 };
 
-// Hook personnalisé pour utiliser le contexte d'authentification
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
