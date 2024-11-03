@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface User {
   name: string;
@@ -15,21 +16,22 @@ interface AuthContextType {
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  // Initialiser avec un utilisateur administrateur par défaut
-  const defaultAdmin: User = { name: 'admin', role: 'admin', password: 'toto' };
+  // const defaultAdmin: User = { name: 'admin', role: 'admin', password: 'toto' };
   const [user, setUser] = useState<User | null>(null);
+  const navigate = useNavigate();
 
   const login = (name: string, password: string) => {
     if (name === defaultAdmin.name && password === defaultAdmin.password) {
       setUser({ name: defaultAdmin.name, role: defaultAdmin.role });
     } else {
-      // Logique pour d'autres utilisateurs ou gestion des erreurs
       console.error('Nom d\'utilisateur ou mot de passe incorrect');
     }
   };
 
   const logout = () => {
     setUser(null);
+    navigate('/');
+    window.location.reload();
   };
 
   return (

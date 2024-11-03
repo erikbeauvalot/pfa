@@ -12,8 +12,8 @@ import UserManagement from './components/UserManagement';
 
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
+    <BrowserRouter>
+      <AuthProvider>
         <Navbar />
         <Routes>
           <Route path="/" element={<Home />} />
@@ -22,8 +22,8 @@ function App() {
           <Route path="/user-management" element={<UserManagement />} />
           {/* Ajouter d'autres routes selon les besoins */}
         </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 

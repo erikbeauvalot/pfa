@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import authRoutes from './routes/auth.routes.js';
 import accountsRoutes from './routes/accounts.routes.js';
+import userRoutes from './routes/user.routes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -21,9 +22,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json({ strict: false }));
 app.use(cors());
 
-// // Routes
-app.use('/api', authRoutes);
+// Routes
 app.use('/api/accounts', accountsRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
 
 // Route de test
 app.get('/api/health', (_req, res) => {
@@ -31,18 +33,11 @@ app.get('/api/health', (_req, res) => {
 });
 
 // Gestion des erreurs globale
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ message: "Une erreur est survenue" });
+  res.status(500).send('Something broke!');
 });
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
-});
-
-// Gestion de la fermeture propre
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM signal received: closing HTTP server');
-  await prisma.$disconnect();
-  process.exit(0);
 });
