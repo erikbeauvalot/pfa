@@ -22,4 +22,15 @@ router.post('/', async (req, res) => {
   }
 });
 
+// Route pour lister tous les utilisateurs
+router.get('/', async (req, res) => {
+  try {
+    const users = await prisma.user.findMany();
+    res.status(200).json(users);
+  } catch (error) {
+    console.error('SERVER CONSOLE : Erreur lors de la récupération des utilisateurs:', error);
+    res.status(500).json({ error: 'Erreur lors de la récupération des utilisateurs' });
+  }
+});
+
 export default router;
