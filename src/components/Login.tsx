@@ -1,3 +1,4 @@
+// FILE: src/components/Login.tsx
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -11,7 +12,6 @@ export default function Login() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     login(name, password);
-    navigate('/dashboard');
   };
 
   return (
