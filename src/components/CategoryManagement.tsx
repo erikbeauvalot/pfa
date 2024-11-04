@@ -7,6 +7,8 @@ const CategoryManagement = () => {
   const [categories, setCategories] = useState([]);
   const [categoryName, setCategoryName] = useState('');
   const [categoryDescription, setCategoryDescription] = useState('');
+  const [categoryColor, setCategoryColor] = useState('#000000'); // Default color
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -23,23 +25,53 @@ const CategoryManagement = () => {
     fetchCategories();
   }, [user]);
 
-  const handleAddCategory = async (e: React.FormEvent) => {
+  const handleAddOrUpdateCategory = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const response = await axios.post('http://localhost:3001/api/categories', { name: categoryName, description: categoryDescription }, {
-        headers: { Authorization: `Bearer ${user?.token}` }
-      });
-      if (response.status === 201) {
-        setCategories([...categories, response.data]);
-        setCategoryName('');
-        setCategoryDescription('');
-      } else {
+    if (editingCategoryId) {
+      // Update category
+      try {
+        const response = await axios.put(`http://localhost:3001/api/categories/${editingCategoryId}`, { name: categoryName, description: categoryDescription, color: categoryColor }, {
+          headers: { Authorization: `Bearer ${user?.token}` }
+        });
+        if (response.status === 200) {
+          setCategories(categories.map(category => category.id === editingCategoryId ? response.data : category));
+          setCategoryName('');
+          setCategoryDescription('');
+          setCategoryColor('#000000'); // Reset to default color
+          setEditingCategoryId(null);
+        } else {
+          alert('Erreur lors de la mise à jour de la catégorie');
+        }
+      } catch (error) {
+        console.error('Erreur lors de la mise à jour de la catégorie:', error);
+        alert('Erreur lors de la mise à jour de la catégorie');
+      }
+    } else {
+      // Add category
+      try {
+        const response = await axios.post('http://localhost:3001/api/categories', { name: categoryName, description: categoryDescription, color: categoryColor }, {
+          headers: { Authorization: `Bearer ${user?.token}` }
+        });
+        if (response.status === 201) {
+          setCategories([...categories, response.data]);
+          setCategoryName('');
+          setCategoryDescription('');
+          setCategoryColor('#000000'); // Reset to default color
+        } else {
+          alert('Erreur lors de l\'ajout de la catégorie');
+        }
+      } catch (error) {
+        console.error('Erreur lors de l\'ajout de la catégorie:', error);
         alert('Erreur lors de l\'ajout de la catégorie');
       }
-    } catch (error) {
-      console.error('Erreur lors de l\'ajout de la catégorie:', error);
-      alert('Erreur lors de l\'ajout de la catégorie');
     }
+  };
+
+  const handleEditCategory = (category: any) => {
+    setCategoryName(category.name);
+    setCategoryDescription(category.description);
+    setCategoryColor(category.color);
+    setEditingCategoryId(category.id);
   };
 
   const handleDeleteCategory = async (id: string) => {
@@ -53,24 +85,10 @@ const CategoryManagement = () => {
     }
   };
 
-  const handleUpdateCategory = async (id: string, newName: string, newDescription: string) => {
-    try {
-      const categoryToUpdate = categories.find(category => category.id === id);
-      if (categoryToUpdate) {
-        await axios.put(`http://localhost:3001/api/categories/${id}`, { ...categoryToUpdate, name: newName, description: newDescription }, {
-          headers: { Authorization: `Bearer ${user?.token}` }
-        });
-        setCategories(categories.map(category => category.id === id ? { ...category, name: newName, description: newDescription } : category));
-      }
-    } catch (error) {
-      console.error('Handle Update : Erreur lors de la mise à jour de la catégorie:', error);
-    }
-  };
-
   return (
     <div className="container mt-5">
       <h2>Gestion des catégories</h2>
-      <form onSubmit={handleAddCategory} autoComplete="off">
+      <form onSubmit={handleAddOrUpdateCategory} autoComplete="off">
         <div className="mb-3">
           <label htmlFor="categoryName" className="form-label">Nom de la catégorie</label>
           <input
@@ -94,7 +112,20 @@ const CategoryManagement = () => {
             autoComplete="off"
           />
         </div>
-        <button type="submit" className="btn btn-primary">Ajouter la catégorie</button>
+        <div className="mb-3">
+          <label htmlFor="categoryColor" className="form-label">Couleur de la catégorie</label>
+          <input
+            type="color"
+            className="form-control"
+            id="categoryColor"
+            value={categoryColor}
+            onChange={(e) => setCategoryColor(e.target.value)}
+            autoComplete="off"
+          />
+        </div>
+        <button type="submit" className="btn btn-primary">
+          {editingCategoryId ? 'Modifier la catégorie' : 'Ajouter la catégorie'}
+        </button>
       </form>
 
       <h2 className="mt-5">Liste des catégories</h2>
@@ -103,6 +134,7 @@ const CategoryManagement = () => {
           <tr>
             <th scope="col">Nom</th>
             <th scope="col">Description</th>
+            <th scope="col">Couleur</th>
             <th scope="col">Actions</th>
           </tr>
         </thead>
@@ -112,7 +144,14 @@ const CategoryManagement = () => {
               <td>{category.name}</td>
               <td>{category.description}</td>
               <td>
-                <button className="btn btn-primary btn-sm me-2" onClick={() => handleUpdateCategory(category.id, prompt('Nouveau nom:', category.name) || category.name, prompt('Nouvelle description:', category.description) || category.description)}>Modifier</button>
+                <button
+                  className="btn btn-sm"
+                  style={{ backgroundColor: category.color, width: '20px', height: '20px', borderRadius: '50%', border: '1px solid #ccc' }}
+                  disabled
+                ></button>
+              </td>
+              <td>
+                <button className="btn btn-primary btn-sm me-2" onClick={() => handleEditCategory(category)}>Modifier</button>
                 <button className="btn btn-danger btn-sm" onClick={() => handleDeleteCategory(category.id)}>Supprimer</button>
               </td>
             </tr>
