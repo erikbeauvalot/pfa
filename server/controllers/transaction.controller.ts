@@ -16,7 +16,7 @@ export const transactionController = {
   },
 
   async createTransaction(req: Request, res: Response) {
-    const { amount, type, description, accountId, categoryId } = req.body;
+    const { amount, type, description, accountId, categoryId, executAt, active } = req.body;
     console.log('body:', req.body);
 
     try {
@@ -26,19 +26,21 @@ export const transactionController = {
           type,
           description,
           accountId,
-          categoryId
+          categoryId,
+          executAt,
+          active
         },
       });
 
       // Mettre à jour le solde du compte
-      await prisma.account.update({
-        where: { id: accountId },
-        data: {
-          balance: {
-            [type === 'credit' ? 'increment' : 'decrement']: amount,
-          },
-        },
-      });
+      // await prisma.account.update({
+      //   where: { id: accountId },
+      //   data: {
+      //     balance: {
+      //       [type === 'credit' ? 'increment' : 'decrement']: amount,
+      //     },
+      //   },
+      // });
 
       res.status(201).json(newTransaction);
     } catch (error) {
@@ -62,12 +64,12 @@ export const transactionController = {
 
   async updateTransaction(req: Request, res: Response) {
     const { transactionId } = req.params;
-    const { amount, type, description } = req.body;
+    const { amount, type, description, executAt, active } = req.body;
 
     try {
       const updatedTransaction = await prisma.transaction.update({
         where: { id: transactionId },
-        data: { amount, type, description },
+        data: { amount, type, description, executAt, active },
       });
 
       res.status(200).json(updatedTransaction);

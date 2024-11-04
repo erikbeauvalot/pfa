@@ -15,7 +15,9 @@ export const accountController = {
   },
 
   async createAccount(req: Request, res: Response) {
-    const { name, type, balance, userId, isDefault } = req.body;
+    console.log(req.body);
+    
+    const { name, type, userId, isDefault } = req.body;
 
     try {
       const newAccount = await prisma.account.create({

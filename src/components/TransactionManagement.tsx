@@ -13,6 +13,9 @@ const TransactionManagement = () => {
   const [description, setDescription] = useState('');
   const [accountId, setAccountId] = useState('');
   const [categoryId, setCategoryId] = useState('');
+  const [executAt, setExecutAt] = useState(new Date().toISOString().split('T')[0]); // Default to today
+  const [repeat, setRepeat] = useState(1); // Default to no repetition
+  const [repeatPeriod, setRepeatPeriod] = useState('mois'); // Default to month
   const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -68,7 +71,8 @@ const TransactionManagement = () => {
     if (editingTransactionId) {
       // Update transaction
       try {
-        const response = await axios.put(`http://localhost:3001/api/transactions/${editingTransactionId}`, { amount: parseFloat(amount), type, description, accountId, categoryId }, {
+        const fullExecutAt = new Date(executAt);
+        const response = await axios.put(`http://localhost:3001/api/transactions/${editingTransactionId}`, { amount: parseFloat(amount), type, description, accountId, categoryId, executAt: fullExecutAt }, {
           headers: { Authorization: `Bearer ${user?.token}` }
         });
         if (response.status === 200) {
@@ -78,6 +82,9 @@ const TransactionManagement = () => {
           setDescription('');
           setAccountId('');
           setCategoryId('');
+          setExecutAt(new Date().toISOString().split('T')[0]); // Reset to today
+          setRepeat(1); // Reset repeat to no repetition
+          setRepeatPeriod('mois'); // Reset repeat period to month
           setEditingTransactionId(null);
         } else {
           alert('Erreur lors de la mise à jour de la transaction');
@@ -89,19 +96,41 @@ const TransactionManagement = () => {
     } else {
       // Add transaction
       try {
-        const response = await axios.post('http://localhost:3001/api/transactions', { amount: parseFloat(amount), type, description, accountId, categoryId }, {
-          headers: { Authorization: `Bearer ${user?.token}` }
-        });
-        if (response.status === 201) {
-          setTransactions([...transactions, response.data]);
-          setAmount('');
-          setType('');
-          setDescription('');
-          setAccountId('');
-          setCategoryId('');
-        } else {
-          alert('Erreur lors de l\'ajout de la transaction');
+        const transactionsToCreate = [];
+        for (let i = 0; i < repeat; i++) {
+          const fullExecutAt = new Date(executAt);
+          if (repeatPeriod === 'jour') {
+            fullExecutAt.setDate(fullExecutAt.getDate() + i); // Increment day for each repetition
+          } else if (repeatPeriod === 'mois') {
+            fullExecutAt.setMonth(fullExecutAt.getMonth() + i); // Increment month for each repetition
+          } else if (repeatPeriod === 'année') {
+            fullExecutAt.setFullYear(fullExecutAt.getFullYear() + i); // Increment year for each repetition
+          }
+          transactionsToCreate.push({
+            amount: parseFloat(amount),
+            type,
+            description,
+            accountId,
+            categoryId,
+            executAt: fullExecutAt,
+          });
         }
+
+        const responses = await Promise.all(transactionsToCreate.map(transaction =>
+          axios.post('http://localhost:3001/api/transactions', transaction, {
+            headers: { Authorization: `Bearer ${user?.token}` }
+          })
+        ));
+
+        setTransactions([...transactions, ...responses.map(response => response.data)]);
+        setAmount('');
+        setType('');
+        setDescription('');
+        setAccountId('');
+        setCategoryId('');
+        setExecutAt(new Date().toISOString().split('T')[0]); // Reset to today
+        setRepeat(1); // Reset repeat to no repetition
+        setRepeatPeriod('mois'); // Reset repeat period to month
       } catch (error) {
         console.error('Erreur lors de l\'ajout de la transaction:', error);
         alert('Erreur lors de l\'ajout de la transaction');
@@ -115,17 +144,37 @@ const TransactionManagement = () => {
     setDescription(transaction.description);
     setAccountId(transaction.accountId);
     setCategoryId(transaction.categoryId);
+    setExecutAt(transaction.executAt.split('T')[0]); // Format date for input
+    setRepeat(1); // Reset repeat to no repetition
+    setRepeatPeriod('mois'); // Reset repeat period to month
     setEditingTransactionId(transaction.id);
+  };
+
+  const handleCloneTransaction = (transaction: any) => {
+    setAmount(transaction.amount.toString());
+    setType(transaction.type);
+    setDescription(transaction.description);
+    setAccountId(transaction.accountId);
+    setCategoryId(transaction.categoryId);
+    setExecutAt(new Date().toISOString().split('T')[0]); // Set to today
+    setRepeat(1); // Reset repeat to no repetition
+    setRepeatPeriod('mois'); // Reset repeat period to month
+    setEditingTransactionId(null); // Ensure it's a new transaction
   };
 
   const handleDeleteTransaction = async (id: string) => {
     try {
-      await axios.delete(`http://localhost:3001/api/transactions/${id}`, {
+      const response = await axios.put(`http://localhost:3001/api/transactions/${id}`, { active: false }, {
         headers: { Authorization: `Bearer ${user?.token}` }
       });
-      setTransactions(transactions.filter(transaction => transaction.id !== id));
+      if (response.status === 200) {
+        setTransactions(transactions.map(transaction => transaction.id === id ? { ...transaction, active: false } : transaction));
+      } else {
+        alert('Erreur lors de la suppression de la transaction');
+      }
     } catch (error) {
       console.error('Erreur lors de la suppression de la transaction:', error);
+      alert('Erreur lors de la suppression de la transaction');
     }
   };
 
@@ -168,6 +217,50 @@ const TransactionManagement = () => {
             autoComplete="off"
           />
         </div>
+
+        <div className="mb-3">
+          <label htmlFor="executAt" className="form-label">Date</label>
+          <input
+            type="date"
+            className="form-control"
+            id="executAt"
+            value={executAt}
+            onChange={(e) => setExecutAt(e.target.value)}
+            autoComplete="off"
+          />
+        </div>
+
+        {!editingTransactionId && (
+          <>
+            <div className="mb-3">
+              <label htmlFor="repeat" className="form-label">Répéter (nombre)</label>
+              <input
+                type="number"
+                className="form-control"
+                id="repeat"
+                value={repeat}
+                onChange={(e) => setRepeat(parseInt(e.target.value))}
+                min="1"
+                autoComplete="off"
+              />
+            </div>
+            <div className="mb-3">
+              <label htmlFor="repeatPeriod" className="form-label">Période de répétition</label>
+              <select
+                className="form-control"
+                id="repeatPeriod"
+                value={repeatPeriod}
+                onChange={(e) => setRepeatPeriod(e.target.value)}
+                required
+              >
+                <option value="aucun">Aucun</option>
+                <option value="jour">Jour</option>
+                <option value="mois">Mois</option>
+                <option value="année">Année</option>
+              </select>
+            </div>
+          </>
+        )}
 
         <div className="mb-3">
           <label htmlFor="accountId" className="form-label">Compte</label>
@@ -214,20 +307,26 @@ const TransactionManagement = () => {
             <th scope="col">Description</th>
             <th scope="col">Compte</th>
             <th scope="col">Catégorie</th>
+            <th scope="col">Date d'exécution</th>
+            <th scope="col">Date de création</th>
+            <th scope="col">Date de mise à jour</th>
             <th scope="col">Actions</th>
           </tr>
         </thead>
         <tbody>
-          {transactions.map((transaction) => (
+          {transactions.filter(transaction => transaction.active).map((transaction) => (
             <tr key={transaction.id}>
-              <td>{transaction.id}</td>
               <td>{transaction.amount}</td>
               <td>{transaction.type}</td>
               <td>{transaction.description}</td>
               <td>{accounts.find(account => account.id === transaction.accountId)?.name}</td>
               <td>{categories.find(category => category.id === transaction.categoryId)?.name}</td>
+              <td>{transaction.executAt}</td>
+              <td>{transaction.createdAt}</td>
+              <td>{transaction.updatedAt}</td>
               <td>
                 <button className="btn btn-primary btn-sm me-2" onClick={() => handleEditTransaction(transaction)}>Modifier</button>
+                <button className="btn btn-secondary btn-sm me-2" onClick={() => handleCloneTransaction(transaction)}>Cloner</button>
                 <button className="btn btn-danger btn-sm" onClick={() => handleDeleteTransaction(transaction.id)}>Supprimer</button>
               </td>
             </tr>

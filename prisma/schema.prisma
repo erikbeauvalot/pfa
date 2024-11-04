@@ -43,6 +43,7 @@ model Category {
 
 model Transaction {
   id          String  @id @default(uuid())
+  active      Boolean @default(true)
   amount      Float
   type        String
   description String
@@ -50,6 +51,7 @@ model Transaction {
   categoryId  String
   account     Account  @relation(fields: [accountId], references: [id])
   category    Category @relation(fields: [categoryId], references: [id])
+  executAt    DateTime @default(now())
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
