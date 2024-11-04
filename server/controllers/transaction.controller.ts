@@ -16,8 +16,8 @@ export const transactionController = {
   },
 
   async createTransaction(req: Request, res: Response) {
-    const { amount, type, description, accountId } = req.body;
-    console.log('amount:', amount);
+    const { amount, type, description, accountId, categoryId } = req.body;
+    console.log('body:', req.body);
 
     try {
       const newTransaction = await prisma.transaction.create({
@@ -26,6 +26,7 @@ export const transactionController = {
           type,
           description,
           accountId,
+          categoryId
         },
       });
 

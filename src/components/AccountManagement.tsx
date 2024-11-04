@@ -8,6 +8,7 @@ const AccountManagement = () => {
   const [accounts, setAccounts] = useState([]);
   const [accountName, setAccountName] = useState('');
   const [accountType, setAccountType] = useState('');
+  const [isDefault, setIsDefault] = useState(false);
   const [editingAccountId, setEditingAccountId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -30,13 +31,14 @@ const AccountManagement = () => {
     if (editingAccountId) {
       // Update account
       try {
-        const response = await axios.put(`http://localhost:3001/api/accounts/${editingAccountId}`, { name: accountName, type: accountType }, {
+        const response = await axios.put(`http://localhost:3001/api/accounts/${editingAccountId}`, { name: accountName, type: accountType, isDefault }, {
           headers: { Authorization: `Bearer ${user?.token}` }
         });
         if (response.status === 200) {
           setAccounts(accounts.map(account => account.id === editingAccountId ? response.data : account));
           setAccountName('');
           setAccountType('');
+          setIsDefault(false);
           setEditingAccountId(null);
         } else {
           alert('Erreur lors de la mise à jour du compte');
@@ -48,13 +50,14 @@ const AccountManagement = () => {
     } else {
       // Add account
       try {
-        const response = await axios.post('http://localhost:3001/api/accounts', { name: accountName, type: accountType, userId: user?.id }, {
+        const response = await axios.post('http://localhost:3001/api/accounts', { name: accountName, type: accountType, isDefault, userId: user?.id }, {
           headers: { Authorization: `Bearer ${user?.token}` }
         });
         if (response.status === 201) {
           setAccounts([...accounts, response.data]);
           setAccountName('');
           setAccountType('');
+          setIsDefault(false);
         } else {
           alert('Erreur lors de l\'ajout du compte');
         }
@@ -68,6 +71,7 @@ const AccountManagement = () => {
   const handleEditAccount = (account: any) => {
     setAccountName(account.name);
     setAccountType(account.type);
+    setIsDefault(account.isDefault);
     setEditingAccountId(account.id);
   };
 
@@ -110,6 +114,16 @@ const AccountManagement = () => {
             autoComplete="off"
           />
         </div>
+        <div className="mb-3 form-check">
+          <input
+            type="checkbox"
+            className="form-check-input"
+            id="isDefault"
+            checked={isDefault}
+            onChange={(e) => setIsDefault(e.target.checked)}
+          />
+          <label className="form-check-label" htmlFor="isDefault">Compte par défaut</label>
+        </div>
         <button type="submit" className="btn btn-primary">
           {editingAccountId ? 'Modifier le compte' : 'Ajouter le compte'}
         </button>
@@ -121,6 +135,7 @@ const AccountManagement = () => {
           <tr>
             <th scope="col">Nom</th>
             <th scope="col">Type</th>
+            <th scope="col">Par défaut</th>
             <th scope="col">Actions</th>
           </tr>
         </thead>
@@ -129,6 +144,7 @@ const AccountManagement = () => {
             <tr key={account.id}>
               <td>{account.name}</td>
               <td>{account.type}</td>
+              <td>{account.isDefault ? 'Oui' : 'Non'}</td>
               <td>
                 <button className="btn btn-primary btn-sm me-2" onClick={() => handleEditAccount(account)}>Modifier</button>
                 <button className="btn btn-danger btn-sm" onClick={() => handleDeleteAccount(account.id)}>Supprimer</button>

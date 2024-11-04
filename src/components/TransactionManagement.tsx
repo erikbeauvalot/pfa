@@ -1,3 +1,4 @@
+// FILE: src/components/TransactionManagement.tsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
@@ -8,7 +9,7 @@ const TransactionManagement = () => {
   const [categories, setCategories] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [amount, setAmount] = useState('');
-  const [type, setType] = useState('credit');
+  const [type, setType] = useState('');
   const [description, setDescription] = useState('');
   const [accountId, setAccountId] = useState('');
   const [categoryId, setCategoryId] = useState('');
@@ -32,6 +33,11 @@ const TransactionManagement = () => {
           headers: { Authorization: `Bearer ${user?.token}` }
         });
         setCategories(response.data);
+        // Sélectionner automatiquement la catégorie par défaut
+        const defaultCategory = response.data.find((category: any) => category.isDefault);
+        if (defaultCategory) {
+          setCategoryId(defaultCategory.id);
+        }
       } catch (error) {
         console.error('Erreur lors de la récupération des catégories:', error);
       }
@@ -43,6 +49,10 @@ const TransactionManagement = () => {
           headers: { Authorization: `Bearer ${user?.token}` }
         });
         setAccounts(response.data);
+        const defaultAccount = response.data.find((account: any) => account.isDefault);
+        if (defaultAccount) {
+          setAccountId(defaultAccount.id);
+        }
       } catch (error) {
         console.error('Erreur lors de la récupération des comptes:', error);
       }
@@ -64,7 +74,7 @@ const TransactionManagement = () => {
         if (response.status === 200) {
           setTransactions(transactions.map(transaction => transaction.id === editingTransactionId ? response.data : transaction));
           setAmount('');
-          setType('credit');
+          setType('');
           setDescription('');
           setAccountId('');
           setCategoryId('');
@@ -85,7 +95,7 @@ const TransactionManagement = () => {
         if (response.status === 201) {
           setTransactions([...transactions, response.data]);
           setAmount('');
-          setType('credit');
+          setType('');
           setDescription('');
           setAccountId('');
           setCategoryId('');
@@ -137,16 +147,15 @@ const TransactionManagement = () => {
         </div>
         <div className="mb-3">
           <label htmlFor="type" className="form-label">Type</label>
-          <select
+          <input
+            type="text"
             className="form-control"
             id="type"
             value={type}
             onChange={(e) => setType(e.target.value)}
             required
-          >
-            <option value="credit">Crédit</option>
-            <option value="debit">Débit</option>
-          </select>
+            autoComplete="off"
+          />
         </div>
         <div className="mb-3">
           <label htmlFor="description" className="form-label">Description</label>
@@ -159,6 +168,7 @@ const TransactionManagement = () => {
             autoComplete="off"
           />
         </div>
+
         <div className="mb-3">
           <label htmlFor="accountId" className="form-label">Compte</label>
           <select
@@ -174,6 +184,7 @@ const TransactionManagement = () => {
             ))}
           </select>
         </div>
+
         <div className="mb-3">
           <label htmlFor="categoryId" className="form-label">Catégorie</label>
           <select
@@ -209,11 +220,12 @@ const TransactionManagement = () => {
         <tbody>
           {transactions.map((transaction) => (
             <tr key={transaction.id}>
+              <td>{transaction.id}</td>
               <td>{transaction.amount}</td>
               <td>{transaction.type}</td>
               <td>{transaction.description}</td>
-              <td>{transaction.accountId}</td>
-              <td>{transaction.categoryId}</td>
+              <td>{accounts.find(account => account.id === transaction.accountId)?.name}</td>
+              <td>{categories.find(category => category.id === transaction.categoryId)?.name}</td>
               <td>
                 <button className="btn btn-primary btn-sm me-2" onClick={() => handleEditTransaction(transaction)}>Modifier</button>
                 <button className="btn btn-danger btn-sm" onClick={() => handleDeleteTransaction(transaction.id)}>Supprimer</button>

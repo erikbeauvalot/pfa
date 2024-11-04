@@ -8,6 +8,7 @@ const CategoryManagement = () => {
   const [categoryName, setCategoryName] = useState('');
   const [categoryDescription, setCategoryDescription] = useState('');
   const [categoryColor, setCategoryColor] = useState('#000000'); // Default color
+  const [isDefault, setIsDefault] = useState(false);
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -30,8 +31,9 @@ const CategoryManagement = () => {
     if (editingCategoryId) {
       // Update category
       try {
-        // console.log('color', categoryColor);
-        const response = await axios.put(`http://localhost:3001/api/categories/${editingCategoryId}`, { name: categoryName, description: categoryDescription, color: categoryColor }, {
+        console.log('name ', categoryName, ' color : ', categoryColor, ' ', isDefault);
+
+        const response = await axios.put(`http://localhost:3001/api/categories/${editingCategoryId}`, { name: categoryName, description: categoryDescription, color: categoryColor, isDefault }, {
           headers: { Authorization: `Bearer ${user?.token}` }
         });
         if (response.status === 200) {
@@ -39,6 +41,7 @@ const CategoryManagement = () => {
           setCategoryName('');
           setCategoryDescription('');
           setCategoryColor('#000000'); // Reset to default color
+          setIsDefault(false);
           setEditingCategoryId(null);
         } else {
           alert('Erreur lors de la mise à jour de la catégorie');
@@ -50,7 +53,9 @@ const CategoryManagement = () => {
     } else {
       // Add category
       try {
-        const response = await axios.post('http://localhost:3001/api/categories', { name: categoryName, description: categoryDescription, color: categoryColor }, {
+        console.log('name ', categoryName, ' color : ', categoryColor, ' ', isDefault);
+
+        const response = await axios.post('http://localhost:3001/api/categories', { name: categoryName, description: categoryDescription, color: categoryColor, isDefault }, {
           headers: { Authorization: `Bearer ${user?.token}` }
         });
         if (response.status === 201) {
@@ -58,6 +63,7 @@ const CategoryManagement = () => {
           setCategoryName('');
           setCategoryDescription('');
           setCategoryColor('#000000'); // Reset to default color
+          setIsDefault(false);
         } else {
           alert('Erreur lors de l\'ajout de la catégorie');
         }
@@ -72,6 +78,7 @@ const CategoryManagement = () => {
     setCategoryName(category.name);
     setCategoryDescription(category.description);
     setCategoryColor(category.color);
+    setIsDefault(category.isDefault);
     setEditingCategoryId(category.id);
   };
 
@@ -124,6 +131,16 @@ const CategoryManagement = () => {
             autoComplete="off"
           />
         </div>
+        <div className="mb-3 form-check">
+          <input
+            type="checkbox"
+            className="form-check-input"
+            id="isDefault"
+            checked={isDefault}
+            onChange={(e) => setIsDefault(e.target.checked)}
+          />
+          <label className="form-check-label" htmlFor="isDefault">Catégorie par défaut</label>
+        </div>
         <button type="submit" className="btn btn-primary">
           {editingCategoryId ? 'Modifier la catégorie' : 'Ajouter la catégorie'}
         </button>
@@ -136,6 +153,7 @@ const CategoryManagement = () => {
             <th scope="col">Nom</th>
             <th scope="col">Description</th>
             <th scope="col">Couleur</th>
+            <th scope="col">Par défaut</th>
             <th scope="col">Actions</th>
           </tr>
         </thead>
@@ -151,6 +169,7 @@ const CategoryManagement = () => {
                   disabled
                 ></button>
               </td>
+              <td>{category.isDefault ? 'Oui' : 'Non'}</td>
               <td>
                 <button className="btn btn-primary btn-sm me-2" onClick={() => handleEditCategory(category)}>Modifier</button>
                 <button className="btn btn-danger btn-sm" onClick={() => handleDeleteCategory(category.id)}>Supprimer</button>

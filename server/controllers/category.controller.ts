@@ -16,7 +16,7 @@ export const categoryController = {
   },
 
   async createCategory(req: Request, res: Response) {
-    const { name, description } = req.body;
+    const { name, description, color, isDefault} = req.body;
     // console.log('name:', name);
 
     try {
@@ -25,6 +25,7 @@ export const categoryController = {
           name,
           description,
           color,
+          isDefault
         },
       });
 
@@ -50,12 +51,12 @@ export const categoryController = {
 
   async updateCategory(req: Request, res: Response) {
     const { categoryId } = req.params;
-    const { name, description, color } = req.body;
+    const { name, description, color , isDefault} = req.body;
 
     try {
       const updatedCategory = await prisma.category.update({
         where: { id: categoryId },
-        data: { name, description, color },
+        data: { name, description, color, isDefault },
       });
 
       res.status(200).json(updatedCategory);

@@ -15,14 +15,15 @@ export const accountController = {
   },
 
   async createAccount(req: Request, res: Response) {
-    const { name, type, balance , userId} = req.body;
+    const { name, type, balance, userId, isDefault } = req.body;
 
     try {
       const newAccount = await prisma.account.create({
         data: {
           name,
           type,
-          userId
+          userId,
+          isDefault,
         },
       });
 
@@ -47,12 +48,12 @@ export const accountController = {
 
   async updateAccount(req: Request, res: Response) {
     const { accountId } = req.params;
-    const { name, type, balance } = req.body;
+    const { name, type, isDefault } = req.body;
 
     try {
       const updatedAccount = await prisma.account.update({
         where: { id: accountId },
-        data: { name, type },
+        data: { name, type, isDefault },
       });
 
       res.status(200).json(updatedAccount);
