@@ -16,7 +16,6 @@ export const accountController = {
 
   async createAccount(req: Request, res: Response) {
     const { name, type, balance , userId} = req.body;
-    console.log('name:', name);
 
     try {
       const newAccount = await prisma.account.create({
@@ -37,7 +36,6 @@ export const accountController = {
 
   async deleteAccount(req: Request, res: Response) {
     const { accountId } = req.params;
-    console.log('accountId:', accountId);
 
     try {
       await prisma.account.delete({ where: { id: accountId } });

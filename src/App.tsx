@@ -8,6 +8,8 @@ import Home from './components/Home';
 import Navbar from './components/Navbar';
 import UserManagement from './components/UserManagement';
 import AccountManagement from './components/AccountManagement';
+import CategoryManagement from './components/CategoryManagement';
+import TransactionManagement from './components/TransactionManagement';
 import { errorHandler } from './services';
 
 // Initialiser l'intercepteur global pour les erreurs
@@ -28,6 +30,8 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/user-management" element={<UserManagement />} />
           <Route path="/account-management" element={<AccountManagement />} />
+          <Route path="/category-management" element={<CategoryManagement />} />
+          <Route path="/transaction-management" element={<TransactionManagement />} />
           {/* Ajouter d'autres routes selon les besoins */}
         </Routes>
       </AuthProvider>
