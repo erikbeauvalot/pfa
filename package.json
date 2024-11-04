@@ -9,7 +9,7 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "server": "nodemon --exec tsx server/server.ts",
-    "seed": "tsx src/prisma/seed.ts"
+    "seed": "tsx /prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.8.1",

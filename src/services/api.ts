@@ -1,10 +1,22 @@
 import axios from 'axios';
+import { API_CONFIG } from './config';
+import { errorHandler } from './errorHandler';
 
-const API_URL = 'http://localhost:3000/api';
+export interface Transaction {
+  accountId: string;
+  amount: number;
+  description: string;
+  type: 'credit' | 'debit';
+}
 
-// Configuration axios avec intercepteur pour le token
+export interface Account {
+  id: string;
+  balance: number;
+  name: string;
+}
+
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: API_CONFIG.BASE_URL,
 });
 
 api.interceptors.request.use((config) => {
@@ -15,13 +27,10 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Interfaces
-interface Transaction {
-  accountId: string;
-  amount: number;
-  description: string;
-  type: 'credit' | 'debit';
-}
+api.interceptors.response.use(
+  response => response,
+  error => Promise.reject(errorHandler.handle(error))
+);
 
 // Fonctions API
 export const fetchAccounts = async () => {

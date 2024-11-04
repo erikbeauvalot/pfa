@@ -1,8 +1,9 @@
 .env
 node_modules
 
-src/prisma/.env
-src/prisma/*.db
+/prisma/.env
+/prisma/*.db
+/prisma/migrations/*
 server/.DS_Store
 server/controllers/.DS_Store
 .DS_Store

@@ -8,6 +8,14 @@ import Home from './components/Home';
 import Navbar from './components/Navbar';
 import UserManagement from './components/UserManagement';
 import AccountManagement from './components/AccountManagement';
+import { errorHandler } from './services';
+
+// Initialiser l'intercepteur global pour les erreurs
+import axios from 'axios';
+axios.interceptors.response.use(
+  response => response,
+  error => Promise.reject(errorHandler.handle(error))
+);
 
 function App() {
   return (
