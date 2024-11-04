@@ -34,7 +34,7 @@ const Navbar = () => {
                   </>
                 )}
                 <li className="nav-item">
-                  <button className="btn btn-link nav-link" onClick={logout}>Déconnexion</button>
+                  <button onClick={logout} className="btn btn-primary">Déconnexion</button>
                 </li>
               </>
             ) : (

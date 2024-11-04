@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:./dev.db"
+  url      = "file:./prisma.db"
 }
 
 model User {
@@ -12,30 +12,43 @@ model User {
   email     String    @unique
   password  String
   name      String    @unique
-  role      String      @default("USER")
-  accounts  Account[]
+  role      String    @default("USER")
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+  accounts  Account[]
 }
 
 model Account {
   id           String        @id @default(uuid())
   name         String
   type         String
-  balance      Float         @default(0)
   userId       String
-  user         User          @relation(fields: [userId], references: [id])
-  transactions Transaction[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+  user         User          @relation(fields: [userId], references: [id])
+  transactions Transaction[]
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String
+  description String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  transaction Transaction[]
 }
 
 model Transaction {
-  id          String   @id @default(uuid())
+  id          String  @id @default(uuid())
   amount      Float
-  type        String   // 'credit' ou 'debit'
+  type        String
   description String
   accountId   String
+  categoryId  String
   account     Account  @relation(fields: [accountId], references: [id])
+  categories  Category @relation(fields: [categoryId], references: [id])
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
+
+
