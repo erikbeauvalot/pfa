@@ -65,3 +65,6 @@ export default tseslint.config({
 
 ```bash
 npm install
+npx prisma migrate dev --name init 
+npx tsx ./prisma/seed.ts
+
