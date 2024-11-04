@@ -17,13 +17,14 @@ export const categoryController = {
 
   async createCategory(req: Request, res: Response) {
     const { name, description } = req.body;
-    console.log('name:', name);
+    // console.log('name:', name);
 
     try {
       const newCategory = await prisma.category.create({
         data: {
           name,
           description,
+          color,
         },
       });
 
@@ -36,7 +37,7 @@ export const categoryController = {
 
   async deleteCategory(req: Request, res: Response) {
     const { categoryId } = req.params;
-    console.log('categoryId:', categoryId);
+    // console.log('categoryId:', categoryId);
 
     try {
       await prisma.category.delete({ where: { id: categoryId } });
@@ -49,12 +50,12 @@ export const categoryController = {
 
   async updateCategory(req: Request, res: Response) {
     const { categoryId } = req.params;
-    const { name, description } = req.body;
+    const { name, description, color } = req.body;
 
     try {
       const updatedCategory = await prisma.category.update({
         where: { id: categoryId },
-        data: { name, description },
+        data: { name, description, color },
       });
 
       res.status(200).json(updatedCategory);

@@ -6,11 +6,13 @@ const TransactionManagement = () => {
   const { user } = useAuth();
   const [transactions, setTransactions] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [accounts, setAccounts] = useState([]);
   const [amount, setAmount] = useState('');
   const [type, setType] = useState('credit');
   const [description, setDescription] = useState('');
   const [accountId, setAccountId] = useState('');
   const [categoryId, setCategoryId] = useState('');
+  const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -35,30 +37,75 @@ const TransactionManagement = () => {
       }
     };
 
+    const fetchAccounts = async () => {
+      try {
+        const response = await axios.get('http://localhost:3001/api/accounts', {
+          headers: { Authorization: `Bearer ${user?.token}` }
+        });
+        setAccounts(response.data);
+      } catch (error) {
+        console.error('Erreur lors de la récupération des comptes:', error);
+      }
+    };
+
     fetchTransactions();
     fetchCategories();
+    fetchAccounts();
   }, [user]);
 
-  const handleAddTransaction = async (e: React.FormEvent) => {
+  const handleAddOrUpdateTransaction = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const response = await axios.post('http://localhost:3001/api/transactions', { amount: parseFloat(amount), type, description, accountId, categoryId }, {
-        headers: { Authorization: `Bearer ${user?.token}` }
-      });
-      if (response.status === 201) {
-        setTransactions([...transactions, response.data]);
-        setAmount('');
-        setType('credit');
-        setDescription('');
-        setAccountId('');
-        setCategoryId('');
-      } else {
+    if (editingTransactionId) {
+      // Update transaction
+      try {
+        const response = await axios.put(`http://localhost:3001/api/transactions/${editingTransactionId}`, { amount: parseFloat(amount), type, description, accountId, categoryId }, {
+          headers: { Authorization: `Bearer ${user?.token}` }
+        });
+        if (response.status === 200) {
+          setTransactions(transactions.map(transaction => transaction.id === editingTransactionId ? response.data : transaction));
+          setAmount('');
+          setType('credit');
+          setDescription('');
+          setAccountId('');
+          setCategoryId('');
+          setEditingTransactionId(null);
+        } else {
+          alert('Erreur lors de la mise à jour de la transaction');
+        }
+      } catch (error) {
+        console.error('Erreur lors de la mise à jour de la transaction:', error);
+        alert('Erreur lors de la mise à jour de la transaction');
+      }
+    } else {
+      // Add transaction
+      try {
+        const response = await axios.post('http://localhost:3001/api/transactions', { amount: parseFloat(amount), type, description, accountId, categoryId }, {
+          headers: { Authorization: `Bearer ${user?.token}` }
+        });
+        if (response.status === 201) {
+          setTransactions([...transactions, response.data]);
+          setAmount('');
+          setType('credit');
+          setDescription('');
+          setAccountId('');
+          setCategoryId('');
+        } else {
+          alert('Erreur lors de l\'ajout de la transaction');
+        }
+      } catch (error) {
+        console.error('Erreur lors de l\'ajout de la transaction:', error);
         alert('Erreur lors de l\'ajout de la transaction');
       }
-    } catch (error) {
-      console.error('Erreur lors de l\'ajout de la transaction:', error);
-      alert('Erreur lors de l\'ajout de la transaction');
     }
+  };
+
+  const handleEditTransaction = (transaction: any) => {
+    setAmount(transaction.amount.toString());
+    setType(transaction.type);
+    setDescription(transaction.description);
+    setAccountId(transaction.accountId);
+    setCategoryId(transaction.categoryId);
+    setEditingTransactionId(transaction.id);
   };
 
   const handleDeleteTransaction = async (id: string) => {
@@ -72,24 +119,10 @@ const TransactionManagement = () => {
     }
   };
 
-  const handleUpdateTransaction = async (id: string, newAmount: number, newType: string, newDescription: string, newAccountId: string, newCategoryId: string) => {
-    try {
-      const transactionToUpdate = transactions.find(transaction => transaction.id === id);
-      if (transactionToUpdate) {
-        await axios.put(`http://localhost:3001/api/transactions/${id}`, { ...transactionToUpdate, amount: newAmount, type: newType, description: newDescription, accountId: newAccountId, categoryId: newCategoryId }, {
-          headers: { Authorization: `Bearer ${user?.token}` }
-        });
-        setTransactions(transactions.map(transaction => transaction.id === id ? { ...transaction, amount: newAmount, type: newType, description: newDescription, accountId: newAccountId, categoryId: newCategoryId } : transaction));
-      }
-    } catch (error) {
-      console.error('Handle Update : Erreur lors de la mise à jour de la transaction:', error);
-    }
-  };
-
   return (
     <div className="container mt-5">
       <h2>Gestion des transactions</h2>
-      <form onSubmit={handleAddTransaction} autoComplete="off">
+      <form onSubmit={handleAddOrUpdateTransaction} autoComplete="off">
         <div className="mb-3">
           <label htmlFor="amount" className="form-label">Montant</label>
           <input
@@ -127,16 +160,19 @@ const TransactionManagement = () => {
           />
         </div>
         <div className="mb-3">
-          <label htmlFor="accountId" className="form-label">ID du compte</label>
-          <input
-            type="text"
+          <label htmlFor="accountId" className="form-label">Compte</label>
+          <select
             className="form-control"
             id="accountId"
             value={accountId}
             onChange={(e) => setAccountId(e.target.value)}
             required
-            autoComplete="off"
-          />
+          >
+            <option value="">Sélectionnez un compte</option>
+            {accounts.map((account) => (
+              <option key={account.id} value={account.id}>{account.name}</option>
+            ))}
+          </select>
         </div>
         <div className="mb-3">
           <label htmlFor="categoryId" className="form-label">Catégorie</label>
@@ -153,7 +189,9 @@ const TransactionManagement = () => {
             ))}
           </select>
         </div>
-        <button type="submit" className="btn btn-primary">Ajouter la transaction</button>
+        <button type="submit" className="btn btn-primary">
+          {editingTransactionId ? 'Modifier la transaction' : 'Ajouter la transaction'}
+        </button>
       </form>
 
       <h2 className="mt-5">Liste des transactions</h2>
@@ -163,7 +201,7 @@ const TransactionManagement = () => {
             <th scope="col">Montant</th>
             <th scope="col">Type</th>
             <th scope="col">Description</th>
-            <th scope="col">ID du compte</th>
+            <th scope="col">Compte</th>
             <th scope="col">Catégorie</th>
             <th scope="col">Actions</th>
           </tr>
@@ -177,7 +215,7 @@ const TransactionManagement = () => {
               <td>{transaction.accountId}</td>
               <td>{transaction.categoryId}</td>
               <td>
-                <button className="btn btn-primary btn-sm me-2" onClick={() => handleUpdateTransaction(transaction.id, parseFloat(prompt('Nouveau montant:', transaction.amount.toString()) || transaction.amount.toString()), prompt('Nouveau type:', transaction.type) || transaction.type, prompt('Nouvelle description:', transaction.description) || transaction.description, prompt('Nouvel ID du compte:', transaction.accountId) || transaction.accountId, prompt('Nouvel ID de la catégorie:', transaction.categoryId) || transaction.categoryId)}>Modifier</button>
+                <button className="btn btn-primary btn-sm me-2" onClick={() => handleEditTransaction(transaction)}>Modifier</button>
                 <button className="btn btn-danger btn-sm" onClick={() => handleDeleteTransaction(transaction.id)}>Supprimer</button>
               </td>
             </tr>

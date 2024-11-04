@@ -1,39 +1,22 @@
-import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-interface User {
-  id: string;
-  name: string;
-  role: 'user' | 'admin';
-  email: string;
-}
-
 interface AuthContextType {
-  user: User | null;
+  user: { name: string, role: string } | null;
   login: (name: string, password: string) => void;
   logout: () => void;
+  checkAuth: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+export const AuthProvider: React.FC = ({ children }) => {
+  const [user, setUser] = useState<{ name: string, role: string } | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      axios.get('http://localhost:3001/api/auth/me', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      .then(response => {
-        setUser(response.data.user);
-      })
-      .catch(() => {
-        localStorage.removeItem('token');
-      });
-    }
+    checkAuth();
   }, []);
 
   const login = async (name: string, password: string) => {
@@ -55,19 +38,34 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     window.location.reload();
   };
 
+  const checkAuth = async () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const response = await axios.get('http://localhost:3001/api/auth/me', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setUser(response.data.user);
+      } catch (error) {
+        console.error('Erreur lors de la vérification de l\'authentification:', error);
+        setUser(null);
+      }
+    } else {
+      setUser(null);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, checkAuth }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-const useAuth = () => {
+export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };
-
-export { AuthProvider, useAuth, AuthContext };

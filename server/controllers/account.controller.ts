@@ -22,8 +22,7 @@ export const accountController = {
         data: {
           name,
           type,
-          userId,
-          balance
+          userId
         },
       });
 
@@ -53,7 +52,7 @@ export const accountController = {
     try {
       const updatedAccount = await prisma.account.update({
         where: { id: accountId },
-        data: { name, type, balance },
+        data: { name, type },
       });
 
       res.status(200).json(updatedAccount);
@@ -63,39 +62,39 @@ export const accountController = {
     }
   },
 
-  async createTransaction(req: Request, res: Response) {
-    const { accountId } = req.params;
-    const { amount, type, description } = req.body;
+  // async createTransaction(req: Request, res: Response) {
+  //   const { accountId } = req.params;
+  //   const { amount, type, description } = req.body;
 
-    try {
-      await prisma.$transaction(async (tx) => {
-        // Créer la transaction
-        await tx.transaction.create({
-          data: {
-            amount,
-            type,
-            description,
-            accountId,
-          },
-        });
+  //   try {
+  //     await prisma.$transaction(async (tx) => {
+  //       // Créer la transaction
+  //       await tx.transaction.create({
+  //         data: {
+  //           amount,
+  //           type,
+  //           description,
+  //           accountId,
+  //         },
+  //       });
 
-        // Mettre à jour le solde du compte
-        await tx.account.update({
-          where: { id: accountId },
-          data: {
-            balance: {
-              [type === 'credit' ? 'increment' : 'decrement']: amount,
-            },
-          },
-        });
-      });
+  //       // Mettre à jour le solde du compte
+  //       await tx.account.update({
+  //         where: { id: accountId },
+  //         data: {
+  //           balance: {
+  //             [type === 'credit' ? 'increment' : 'decrement']: amount,
+  //           },
+  //         },
+  //       });
+  //     });
 
-      res.status(201).json({ message: 'Transaction créée avec succès' });
-    } catch (error) {
-      console.error('Erreur lors de la création de la transaction:', error);
-      res.status(500).json({ message: 'Erreur lors de la création de la transaction' });
-    }
-  },
+  //     res.status(201).json({ message: 'Transaction créée avec succès' });
+  //   } catch (error) {
+  //     console.error('Erreur lors de la création de la transaction:', error);
+  //     res.status(500).json({ message: 'Erreur lors de la création de la transaction' });
+  //   }
+  // },
 };
 
 export default accountController;

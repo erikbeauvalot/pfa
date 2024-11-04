@@ -1,21 +1,15 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useAuth } from '../contexts/AuthContext';
 
-interface Account {
-  id: string;
-  balance: number;
-  name: string;
-}
-
-export function Dashboard() {
-  const [accounts, setAccounts] = useState<Account[]>([]);
+const Dashboard = () => {
   const { user } = useAuth();
+  const [accounts, setAccounts] = useState([]);
 
   useEffect(() => {
     const fetchAccounts = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/accounts', {
+        const response = await axios.get('http://localhost:3001/api/accounts', {
           headers: { Authorization: `Bearer ${user?.token}` }
         });
         setAccounts(response.data);
@@ -44,4 +38,6 @@ export function Dashboard() {
       </div>
     </div>
   );
-}
+};
+
+export default Dashboard;

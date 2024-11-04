@@ -30,6 +30,7 @@ const CategoryManagement = () => {
     if (editingCategoryId) {
       // Update category
       try {
+        // console.log('color', categoryColor);
         const response = await axios.put(`http://localhost:3001/api/categories/${editingCategoryId}`, { name: categoryName, description: categoryDescription, color: categoryColor }, {
           headers: { Authorization: `Bearer ${user?.token}` }
         });
