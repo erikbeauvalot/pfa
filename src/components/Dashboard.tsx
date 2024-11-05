@@ -10,6 +10,7 @@ const Dashboard = () => {
   const [transactions, setTransactions] = useState([]);
   const [balancesByAccount, setBalancesByAccount] = useState<{ [key: string]: number }>({});
   const [balancesByCategory, setBalancesByCategory] = useState<{ [key: string]: number }>({});
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]); // Default to today
 
   useEffect(() => {
     const fetchAccounts = async () => {
@@ -53,17 +54,17 @@ const Dashboard = () => {
   useEffect(() => {
     const calculateBalancesByCategory = () => {
       const balances: { [key: string]: number } = {};
-      const now = new Date();
+      const now = new Date(selectedDate);
       transactions
         .filter(transaction => transaction.active === true) // Filtrer les transactions actives
         .forEach((transaction) => {
           const { categoryId, amount, executAt } = transaction;
           const transactionDate = new Date(executAt);
           if (transactionDate <= now) {
-        if (!balances[categoryId]) {
-          balances[categoryId] = 0;
-        }
-        balances[categoryId] += amount; // Ajouter le montant sans tenir compte du type
+            if (!balances[categoryId]) {
+              balances[categoryId] = 0;
+            }
+            balances[categoryId] += amount; // Ajouter le montant sans tenir compte du type
           }
         });
       setBalancesByCategory(balances);
@@ -71,7 +72,7 @@ const Dashboard = () => {
 
     const calculateBalancesByAccount = () => {
       const balances: { [key: string]: number } = {};
-      const now = new Date();
+      const now = new Date(selectedDate);
       transactions
         .filter(transaction => transaction.active === true) // Filtrer les transactions actives
         .forEach((transaction) => {
@@ -89,11 +90,21 @@ const Dashboard = () => {
 
     calculateBalancesByCategory();
     calculateBalancesByAccount();
-  }, [transactions]);
+  }, [transactions, selectedDate]);
 
   return (
     <div className="dashboard">
       <h1>Mes Comptes</h1>
+      <div className="mb-3">
+        <label htmlFor="selectedDate" className="form-label">Date de référence</label>
+        <input
+          type="date"
+          className="form-control"
+          id="selectedDate"
+          value={selectedDate}
+          onChange={(e) => setSelectedDate(e.target.value)}
+        />
+      </div>
       <h2></h2>
       <table className="table">
         <thead>

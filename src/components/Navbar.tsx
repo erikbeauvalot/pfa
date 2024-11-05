@@ -31,12 +31,6 @@ const Navbar = () => {
                     <li className="nav-item">
                       <Link className="nav-link" to="/account-management">Gestion des comptes</Link>
                     </li>
-                    <li className="nav-item">
-                      <Link className="nav-link" to="/category-management">Gestion des catégories</Link>
-                    </li>
-                    <li className="nav-item">
-                      <Link className="nav-link" to="/transaction-management">Gestion des transactions</Link>
-                    </li>
                   </>
                 )}
                 <li className="nav-item">
