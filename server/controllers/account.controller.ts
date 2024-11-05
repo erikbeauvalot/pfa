@@ -15,8 +15,9 @@ export const accountController = {
   },
 
   async createAccount(req: Request, res: Response) {
-    const { name, type, balance , userId} = req.body;
-    console.log('name:', name);
+    console.log(req.body);
+    
+    const { name, type, userId, isDefault } = req.body;
 
     try {
       const newAccount = await prisma.account.create({
@@ -24,7 +25,7 @@ export const accountController = {
           name,
           type,
           userId,
-          balance
+          isDefault,
         },
       });
 
@@ -37,7 +38,6 @@ export const accountController = {
 
   async deleteAccount(req: Request, res: Response) {
     const { accountId } = req.params;
-    console.log('accountId:', accountId);
 
     try {
       await prisma.account.delete({ where: { id: accountId } });
@@ -50,12 +50,12 @@ export const accountController = {
 
   async updateAccount(req: Request, res: Response) {
     const { accountId } = req.params;
-    const { name, type, balance } = req.body;
+    const { name, type, isDefault } = req.body;
 
     try {
       const updatedAccount = await prisma.account.update({
         where: { id: accountId },
-        data: { name, type, balance },
+        data: { name, type, isDefault },
       });
 
       res.status(200).json(updatedAccount);
@@ -65,39 +65,39 @@ export const accountController = {
     }
   },
 
-  async createTransaction(req: Request, res: Response) {
-    const { accountId } = req.params;
-    const { amount, type, description } = req.body;
+  // async createTransaction(req: Request, res: Response) {
+  //   const { accountId } = req.params;
+  //   const { amount, type, description } = req.body;
 
-    try {
-      await prisma.$transaction(async (tx) => {
-        // Créer la transaction
-        await tx.transaction.create({
-          data: {
-            amount,
-            type,
-            description,
-            accountId,
-          },
-        });
+  //   try {
+  //     await prisma.$transaction(async (tx) => {
+  //       // Créer la transaction
+  //       await tx.transaction.create({
+  //         data: {
+  //           amount,
+  //           type,
+  //           description,
+  //           accountId,
+  //         },
+  //       });
 
-        // Mettre à jour le solde du compte
-        await tx.account.update({
-          where: { id: accountId },
-          data: {
-            balance: {
-              [type === 'credit' ? 'increment' : 'decrement']: amount,
-            },
-          },
-        });
-      });
+  //       // Mettre à jour le solde du compte
+  //       await tx.account.update({
+  //         where: { id: accountId },
+  //         data: {
+  //           balance: {
+  //             [type === 'credit' ? 'increment' : 'decrement']: amount,
+  //           },
+  //         },
+  //       });
+  //     });
 
-      res.status(201).json({ message: 'Transaction créée avec succès' });
-    } catch (error) {
-      console.error('Erreur lors de la création de la transaction:', error);
-      res.status(500).json({ message: 'Erreur lors de la création de la transaction' });
-    }
-  },
+  //     res.status(201).json({ message: 'Transaction créée avec succès' });
+  //   } catch (error) {
+  //     console.error('Erreur lors de la création de la transaction:', error);
+  //     res.status(500).json({ message: 'Erreur lors de la création de la transaction' });
+  //   }
+  // },
 };
 
 export default accountController;

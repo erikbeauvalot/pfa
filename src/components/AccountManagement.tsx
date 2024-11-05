@@ -8,7 +8,8 @@ const AccountManagement = () => {
   const [accounts, setAccounts] = useState([]);
   const [accountName, setAccountName] = useState('');
   const [accountType, setAccountType] = useState('');
-  const [accountBalance, setAccountBalance] = useState(0);
+  const [isDefault, setIsDefault] = useState(false);
+  const [editingAccountId, setEditingAccountId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchAccounts = async () => {
@@ -25,24 +26,53 @@ const AccountManagement = () => {
     fetchAccounts();
   }, [user]);
 
-  const handleAddAccount = async (e: React.FormEvent) => {
+  const handleAddOrUpdateAccount = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const response = await axios.post('http://localhost:3001/api/accounts', { name: accountName, type: accountType, balance: accountBalance, userId: user?.id }, {
-        headers: { Authorization: `Bearer ${user?.token}` }
-      });
-      if (response.status === 201) {
-        setAccounts([...accounts, response.data]);
-        setAccountName('');
-        setAccountType('');
-        setAccountBalance(0);
-      } else {
+    if (editingAccountId) {
+      // Update account
+      try {
+        const response = await axios.put(`http://localhost:3001/api/accounts/${editingAccountId}`, { name: accountName, type: accountType, isDefault }, {
+          headers: { Authorization: `Bearer ${user?.token}` }
+        });
+        if (response.status === 200) {
+          setAccounts(accounts.map(account => account.id === editingAccountId ? response.data : account));
+          setAccountName('');
+          setAccountType('');
+          setIsDefault(false);
+          setEditingAccountId(null);
+        } else {
+          alert('Erreur lors de la mise à jour du compte');
+        }
+      } catch (error) {
+        console.error('Erreur lors de la mise à jour du compte:', error);
+        alert('Erreur lors de la mise à jour du compte');
+      }
+    } else {
+      // Add account
+      try {
+        const response = await axios.post('http://localhost:3001/api/accounts', { name: accountName, type: accountType, isDefault, userId: user?.id }, {
+          headers: { Authorization: `Bearer ${user?.token}` }
+        });
+        if (response.status === 201) {
+          setAccounts([...accounts, response.data]);
+          setAccountName('');
+          setAccountType('');
+          setIsDefault(false);
+        } else {
+          alert('Erreur lors de l\'ajout du compte');
+        }
+      } catch (error) {
+        console.error('Erreur lors de l\'ajout du compte:', error);
         alert('Erreur lors de l\'ajout du compte');
       }
-    } catch (error) {
-      console.error('Erreur lors de l\'ajout du compte:', error);
-      alert('Erreur lors de l\'ajout du compte');
     }
+  };
+
+  const handleEditAccount = (account: any) => {
+    setAccountName(account.name);
+    setAccountType(account.type);
+    setIsDefault(account.isDefault);
+    setEditingAccountId(account.id);
   };
 
   const handleDeleteAccount = async (id: string) => {
@@ -56,24 +86,10 @@ const AccountManagement = () => {
     }
   };
 
-  const handleUpdateAccount = async (id: string, newName: string, newType: string, newBalance: number) => {
-    try {
-      const accountToUpdate = accounts.find(account => account.id === id);
-      if (accountToUpdate) {
-        await axios.put(`http://localhost:3001/api/accounts/${id}`, { ...accountToUpdate, name: newName, type: newType, balance: newBalance }, {
-          headers: { Authorization: `Bearer ${user?.token}` }
-        });
-        setAccounts(accounts.map(account => account.id === id ? { ...account, name: newName, type: newType, balance: newBalance } : account));
-      }
-    } catch (error) {
-      console.error('Handle Update : Erreur lors de la mise à jour du compte:', error);
-    }
-  };
-
   return (
     <div className="container mt-5">
       <h2>Gestion des comptes bancaires</h2>
-      <form onSubmit={handleAddAccount} autoComplete="off">
+      <form onSubmit={handleAddOrUpdateAccount} autoComplete="off">
         <div className="mb-3">
           <label htmlFor="accountName" className="form-label">Nom du compte</label>
           <input
@@ -98,19 +114,19 @@ const AccountManagement = () => {
             autoComplete="off"
           />
         </div>
-        <div className="mb-3">
-          <label htmlFor="accountBalance" className="form-label">Solde</label>
+        <div className="mb-3 form-check">
           <input
-            type="number"
-            className="form-control"
-            id="accountBalance"
-            value={accountBalance}
-            onChange={(e) => setAccountBalance(parseFloat(e.target.value))}
-            required
-            autoComplete="off"
+            type="checkbox"
+            className="form-check-input"
+            id="isDefault"
+            checked={isDefault}
+            onChange={(e) => setIsDefault(e.target.checked)}
           />
+          <label className="form-check-label" htmlFor="isDefault">Compte par défaut</label>
         </div>
-        <button type="submit" className="btn btn-primary">Ajouter le compte</button>
+        <button type="submit" className="btn btn-primary">
+          {editingAccountId ? 'Modifier le compte' : 'Ajouter le compte'}
+        </button>
       </form>
 
       <h2 className="mt-5">Liste des comptes bancaires</h2>
@@ -119,7 +135,7 @@ const AccountManagement = () => {
           <tr>
             <th scope="col">Nom</th>
             <th scope="col">Type</th>
-            <th scope="col">Solde</th>
+            <th scope="col">Par défaut</th>
             <th scope="col">Actions</th>
           </tr>
         </thead>
@@ -128,9 +144,9 @@ const AccountManagement = () => {
             <tr key={account.id}>
               <td>{account.name}</td>
               <td>{account.type}</td>
-              <td>{account.balance}</td>
+              <td>{account.isDefault ? 'Oui' : 'Non'}</td>
               <td>
-                <button className="btn btn-primary btn-sm me-2" onClick={() => handleUpdateAccount(account.id, prompt('Nouveau nom:', account.name) || account.name, prompt('Nouveau type:', account.type) || account.type, parseFloat(prompt('Nouveau solde:', account.balance.toString()) || account.balance.toString()))}>Modifier</button>
+                <button className="btn btn-primary btn-sm me-2" onClick={() => handleEditAccount(account)}>Modifier</button>
                 <button className="btn btn-danger btn-sm" onClick={() => handleDeleteAccount(account.id)}>Supprimer</button>
               </td>
             </tr>

@@ -23,6 +23,7 @@ model Account {
   name         String
   type         String
   userId       String
+  isDefault    Boolean       @default(false)
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   user         User          @relation(fields: [userId], references: [id])
@@ -30,23 +31,27 @@ model Account {
 }
 
 model Category {
-  id          String    @id @default(uuid())
-  name        String
-  description String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  transaction Transaction[]
+  id           String    @id @default(uuid())
+  name         String
+  description  String
+  color        String    @default("#000000")
+  isDefault    Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  transactions Transaction[]
 }
 
 model Transaction {
   id          String  @id @default(uuid())
+  active      Boolean @default(true)
   amount      Float
   type        String
   description String
   accountId   String
   categoryId  String
   account     Account  @relation(fields: [accountId], references: [id])
-  categories  Category @relation(fields: [categoryId], references: [id])
+  category    Category @relation(fields: [categoryId], references: [id])
+  executAt    DateTime @default(now())
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

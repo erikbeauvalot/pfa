@@ -67,4 +67,47 @@ export default tseslint.config({
 npm install
 npx prisma migrate dev --name init 
 npx tsx ./prisma/seed.ts
+```
+
+## Start Server
+Open a dedicated terminal
+
+```bash
+npm run server
+```
+
+## Start App in Dev mode
+Open a dedicated terminal
+
+```bash
+npm run dev
+```
+
+## Start App in Production mode
+Open a dedicated terminal
+Update .envrr
+
+```bash
+npm run build
+npm run preview
+```
+
+## Prisma DB management :  
+
+Update schema.prisma
+Integration of change : 
+```bash
+npx prisma migrate dev --name NAME_OF_THE_CHANGE
+```
+
+Appliquer les migrations à la base de données
+```bash
+npx prisma migrate deploy
+```
+
+Vérifier les modifications
+```bash
+npx prisma studio
+```
+
 
