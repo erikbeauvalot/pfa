@@ -93,53 +93,55 @@ const Dashboard = () => {
   }, [transactions, selectedDate]);
 
   return (
-    <div className="dashboard">
-      <h1>Mes Comptes</h1>
-      <div className="mb-3">
-        <label htmlFor="selectedDate" className="form-label">Date de référence</label>
-        <input
-          type="date"
-          className="form-control"
-          id="selectedDate"
-          value={selectedDate}
-          onChange={(e) => setSelectedDate(e.target.value)}
-        />
-      </div>
-      <h2></h2>
-      <table className="table">
-        <thead>
-          <tr>
-            <th>Compte</th>
-            <th>Solde</th>
-          </tr>
-        </thead>
-        <tbody>
-          {accounts.map((account) => (
-            <tr key={account.id}>
-              <td>{account.name}</td>
-              <td>{balancesByAccount[account.id] || 0}</td>
+    <div className="container mt-5">
+      <div className="dashboard">
+        <h1>Mes Comptes</h1>
+        <div className="mb-3">
+          <label htmlFor="selectedDate" className="form-label">Date de référence</label>
+          <input
+            type="date"
+            className="form-control"
+            id="selectedDate"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+          />
+        </div>
+        <h2></h2>
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Compte</th>
+              <th>Solde</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {accounts.map((account) => (
+              <tr key={account.id}>
+                <td>{account.name}</td>
+                <td>{balancesByAccount[account.id] || 0}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
 
-      <h2>Soldes par Catégorie</h2>
-      <table className="table">
-        <thead>
-          <tr>
-            <th>Catégorie</th>
-            <th>Solde</th>
-          </tr>
-        </thead>
-        <tbody>
-          {categories.map((category) => (
-            <tr key={category.id}>
-              <td>{category.name}</td>
-              <td>{balancesByCategory[category.id] || 0}</td>
+        <h2>Soldes par Catégorie</h2>
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Catégorie</th>
+              <th>Solde</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {categories.map((category) => (
+              <tr key={category.id}>
+                <td>{category.name}</td>
+                <td>{balancesByCategory[category.id] || 0}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
